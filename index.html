@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>敦煌·灵境 | 丝路流光 · 数字华彩</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600&family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0f0a06;
+            font-family: 'Inter', 'Cormorant Garamond', serif;
+            overflow-x: hidden;
+            color: #f7efdf;
+        }
+
+        /* 敦煌风渐变噪点纹理 */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: radial-gradient(rgba(210, 150, 75, 0.08) 1px, transparent 1px);
+            background-size: 32px 32px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .app {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem 2rem 4rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* 洞窟入口区 - 史诗氛围 */
+        .hero {
+            position: relative;
+            min-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            border-radius: 4rem;
+            margin-bottom: 5rem;
+            background: radial-gradient(ellipse at 40% 35%, rgba(70, 40, 20, 0.5) 0%, rgba(15, 8, 3, 0.9) 90%);
+            backdrop-filter: blur(2px);
+            box-shadow: 0 20px 40px -15px rgba(0,0,0,0.6), inset 0 0 60px rgba(230, 180, 100, 0.15);
+            border: 1px solid rgba(210, 150, 70, 0.3);
+            overflow: hidden;
+        }
+
+        /* 动态流动飘带背景 (Canvas模拟) */
+        .hero-ribbons {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .title {
+            font-size: clamp(3.5rem, 12vw, 6.5rem);
+            font-weight: 500;
+            font-family: 'Cormorant Garamond', serif;
+            letter-spacing: 0.12em;
+            background: linear-gradient(135deg, #FFE6B0 10%, #E9B56A 40%, #C57F3A 80%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 2px 20px rgba(0,0,0,0.3);
+            margin-bottom: 1rem;
+            animation: fadeGlow 1.4s ease-out;
+        }
+
+        .sub {
+            font-size: 1.2rem;
+            letter-spacing: 6px;
+            font-weight: 300;
+            background: rgba(30, 18, 8, 0.6);
+            backdrop-filter: blur(8px);
+            padding: 0.5rem 2rem;
+            border-radius: 80px;
+            border-left: 1px solid #e6b567;
+            border-right: 1px solid #e6b567;
+        }
+
+        .door-btn {
+            background: rgba(0, 0, 0, 0.55);
+            backdrop-filter: blur(12px);
+            border: 1px solid #e6b567;
+            padding: 1rem 2.8rem;
+            border-radius: 60px;
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: #FFEFCF;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            margin-top: 3rem;
+            letter-spacing: 2px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .door-btn:hover {
+            background: #c2823c;
+            border-color: #ffdd99;
+            transform: scale(1.03);
+            box-shadow: 0 15px 25px -8px black;
+            color: #1f1307;
+            letter-spacing: 4px;
+        }
+
+        /* 精美标题区 */
+        .section-title {
+            font-size: 2.4rem;
+            font-weight: 400;
+            text-align: center;
+            margin: 3rem 0 2rem;
+            font-family: 'Cormorant Garamond', serif;
+            position: relative;
+        }
+
+        .section-title span {
+            background: linear-gradient(120deg, #EBC28E, #F5DEB3);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+        }
+
+        .section-title:before, .section-title:after {
+            content: "✦";
+            margin: 0 20px;
+            opacity: 0.6;
+            font-size: 1.6rem;
+            color: #e6b567;
+        }
+
+        /* 卡片网格 — 丝绸质感 */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2.2rem;
+            margin: 2rem 0 3rem;
+        }
+
+        .cave-card {
+            background: rgba(20, 13, 7, 0.65);
+            backdrop-filter: blur(12px);
+            border-radius: 2rem;
+            overflow: hidden;
+            border: 1px solid rgba(200, 140, 70, 0.5);
+            transition: all 0.35s ease;
+            cursor: pointer;
+            box-shadow: 0 15px 25px -12px rgba(0, 0, 0, 0.5);
+            position: relative;
+        }
+
+        .cave-card:hover {
+            transform: translateY(-10px);
+            border-color: #e6b567;
+            box-shadow: 0 25px 35px -15px #000000aa;
+            background: rgba(30, 20, 12, 0.8);
+        }
+
+        .card-img {
+            height: 220px;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+            transition: transform 0.5s;
+        }
+
+        .cave-card:hover .card-img {
+            transform: scale(1.02);
+        }
+
+        .card-content {
+            padding: 1.7rem;
+        }
+
+        .card-content h3 {
+            font-size: 1.7rem;
+            font-weight: 500;
+            margin-bottom: 0.6rem;
+            letter-spacing: 1px;
+        }
+
+        .card-content p {
+            font-size: 0.9rem;
+            color: #e6d5b8;
+            line-height: 1.4;
+        }
+
+        /* 文旅地图高级感 */
+        .travel-map {
+            background: rgba(25, 16, 8, 0.7);
+            backdrop-filter: blur(8px);
+            border-radius: 2.5rem;
+            padding: 2rem;
+            margin-top: 5rem;
+            border: 1px solid #a4784690;
+            transition: all 0.3s;
+        }
+
+        .map-title {
+            font-size: 1.8rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            justify-content: center;
+            font-weight: 400;
+        }
+
+        .map-spots {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: center;
+            margin: 2rem 0 1rem;
+        }
+
+        .spot {
+            background: #2f2319;
+            padding: 0.6rem 1.4rem;
+            border-radius: 60px;
+            font-size: 0.9rem;
+            font-weight: 400;
+            transition: 0.25s;
+            cursor: pointer;
+            border: 1px solid #7c5a3a;
+        }
+
+        .spot:hover {
+            background: #e6b567;
+            color: #21160c;
+            border-color: #fff0cf;
+            transform: scale(1.02);
+        }
+
+        /* 模态框 更华丽 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(12px);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            visibility: hidden;
+            opacity: 0;
+            transition: visibility 0.2s, opacity 0.25s;
+        }
+
+        .modal-active {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .modal-container {
+            max-width: 560px;
+            width: 90%;
+            background: linear-gradient(145deg, #261c12, #1b130b);
+            border-radius: 2rem;
+            border: 1px solid #e6b567;
+            padding: 2rem;
+            position: relative;
+            color: #f7ebd0;
+            box-shadow: 0 35px 45px rgba(0,0,0,0.5);
+            transform: scale(0.96);
+            transition: transform 0.25s;
+        }
+
+        .modal-active .modal-container {
+            transform: scale(1);
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 1rem;
+            right: 1.5rem;
+            font-size: 2rem;
+            cursor: pointer;
+            color: #e6b567;
+            transition: 0.2s;
+        }
+
+        .modal-img {
+            width: 100%;
+            height: 200px;
+            background-size: cover;
+            border-radius: 1.5rem;
+            margin: 1rem 0;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+        }
+
+        .audio-icon {
+            display: inline-flex;
+            background: #b2722e;
+            padding: 0.4rem 1.2rem;
+            border-radius: 60px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: 0.2s;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .audio-icon:hover {
+            background: #d6974b;
+            color: #201508;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 5rem;
+            font-size: 0.75rem;
+            opacity: 0.6;
+            letter-spacing: 1px;
+        }
+
+        @keyframes fadeGlow {
+            0% { opacity: 0; text-shadow: 0 0 0px transparent; transform: translateY(20px);}
+            100% { opacity: 1; text-shadow: 0 0 12px rgba(230,180,70,0.4); transform: translateY(0);}
+        }
+
+        @media (max-width: 700px) {
+            .app { padding: 1rem; }
+            .section-title:before, .section-title:after { display: none; }
+            .hero { min-height: 70vh; }
+        }
+    </style>
+</head>
+<body>
+<div class="app">
+    <!-- Hero 洞天入口 -->
+    <div class="hero" id="heroSection">
+        <canvas id="ribbonCanvas" class="hero-ribbons" style="position:absolute; top:0; left:0; width:100%; height:100%;"></canvas>
+        <h1 class="title">敦煌·灵境</h1>
+        <div class="sub">DUNHUANG · NUMEN</div>
+        <button class="door-btn" id="enterBtn">✨ 轻启窟门 · 入灵境 ✨</button>
+        <p style="margin-top: 2rem; font-size: 0.85rem; opacity:0.7; letter-spacing:2px;">飞天绕梁 · 九色幻鹿 · 藻井星罗</p>
+    </div>
+
+    <!-- 窟龛圣殿 -->
+    <div id="cavesSection" style="scroll-margin-top: 30px;">
+        <div class="section-title"><span>灵境窟龛 · 敦煌四韵</span></div>
+        <div class="card-grid">
+            <div class="cave-card" data-theme="飞天">
+                <div class="card-img" style="background-image: linear-gradient(145deg, #b87a3e, #e6a95b), url('https://picsum.photos/id/104/500/350'); background-blend-mode: overlay;"></div>
+                <div class="card-content"><h3>✨ 飞天 · 乐舞</h3><p>飘带凌云，反弹琵琶，交互悬停回响盛唐余韵。</p></div>
+            </div>
+            <div class="cave-card" data-theme="九色鹿">
+                <div class="card-img" style="background-image: linear-gradient(145deg, #a46f3a, #d6944a), url('https://picsum.photos/id/96/500/350'); background-blend-mode: overlay;"></div>
+                <div class="card-content"><h3>🦌 九色鹿 · 本生</h3><p>信义慈悲，长按感应，古窟中的本生真言。</p></div>
+            </div>
+            <div class="cave-card" data-theme="藻井">
+                <div class="card-img" style="background-image: linear-gradient(145deg, #8c5f33, #ca8643), url('https://picsum.photos/id/158/500/350'); background-blend-mode: overlay;"></div>
+                <div class="card-content"><h3>🪷 藻井 · 华盖</h3><p>中心对称，纹脉穹顶，秩序之美的数字转译。</p></div>
+            </div>
+            <div class="cave-card" data-theme="反弹琵琶">
+                <div class="card-img" style="background-image: linear-gradient(145deg, #ad6930, #e29f55), url('https://picsum.photos/id/30/500/350'); background-blend-mode: overlay;"></div>
+                <div class="card-content"><h3>🎵 反弹琵琶 · 伎乐</h3><p>大唐绝响，丝路乐魂，点击聆听敦煌遗音。</p></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 文旅丝路图志 -->
+    <div class="travel-map">
+        <div class="map-title">🏜️ 丝路印迹 · 敦煌文旅图</div>
+        <div class="map-spots" id="travelSpots">
+            <div class="spot" data-spot="莫高窟">莫高窟 · 数字藏经洞</div>
+            <div class="spot" data-spot="鸣沙山">鸣沙山 · 月牙泉</div>
+            <div class="spot" data-spot="雅丹">雅丹 · 日落秘境</div>
+            <div class="spot" data-spot="又见敦煌">《又见敦煌》浸入剧</div>
+        </div>
+        <div id="travelMsg" style="margin-top: 1.4rem; background:#20170f; border-radius: 2rem; padding: 1rem; text-align: center; font-size:0.9rem; border-left: 3px solid #dba354;"></div>
+    </div>
+    <footer>◈ 基于《艺术设计史》传统符号转译 · 飞天飘带 | 藻井秩序 | 沉浸文旅交互 ◈</footer>
+</div>
+
+<!-- 模态窗详情 -->
+<div id="detailModal" class="modal-overlay">
+    <div class="modal-container">
+        <span class="modal-close" id="closeModalBtn">&times;</span>
+        <h2 id="modalTitle">飞天 · 乐舞</h2>
+        <div id="modalImg" class="modal-img"></div>
+        <p id="modalDesc">壁画中的动势美学，于方寸间再现灵韵。</p>
+        <div id="modalExtra"><div class="audio-icon" id="playAudioBtn">🎵 天乐遗音 · 鸣沙回响</div></div>
+        <small style="display:block; margin-top:1rem;">💡 长按「九色鹿」卡片触发箴言；每一窟皆可触达文化记忆</small>
+    </div>
+</div>
+
+<script>
+    // 华丽飘带动效 Canvas 绘制金色丝带 (提升视觉美感)
+    const canvas = document.getElementById('ribbonCanvas');
+    function resizeCanvas() {
+        const heroDiv = document.querySelector('.hero');
+        if(!heroDiv) return;
+        const rect = heroDiv.getBoundingClientRect();
+        canvas.width = rect.width;
+        canvas.height = rect.height;
+        canvas.style.width = `${rect.width}px`;
+        canvas.style.height = `${rect.height}px`;
+        drawRibbons();
+    }
+    function drawRibbons() {
+        if(!canvas || !canvas.getContext) return;
+        const ctx = canvas.getContext('2d');
+        const w = canvas.width, h = canvas.height;
+        if(w === 0 || h === 0) return;
+        ctx.clearRect(0, 0, w, h);
+        // 多条飘带状曲线
+        const time = Date.now() / 2800;
+        for(let i = 0; i < 5; i++) {
+            ctx.beginPath();
+            const offsetY = 0.2 + i * 0.15;
+            const amplitude = 35 + Math.sin(i) * 12;
+            const freq = 0.008;
+            let startX = -40;
+            let startY = h * (0.2 + i * 0.12);
+            ctx.moveTo(startX, startY);
+            for(let x = 0; x <= w + 60; x+=15) {
+                let y = startY + Math.sin(x * freq + time + i * 1.2) * amplitude + Math.cos(x * 0.012 + time*0.7) * 12;
+                ctx.lineTo(x, y);
+            }
+            const gradient = ctx.createLinearGradient(0, startY-15, w, startY+15);
+            gradient.addColorStop(0, `rgba(230, 180, 90, ${0.2 + i*0.05})`);
+            gradient.addColorStop(1, `rgba(200, 130, 60, ${0.25})`);
+            ctx.strokeStyle = gradient;
+            ctx.lineWidth = 2.5 + Math.sin(time + i)*1.2;
+            ctx.shadowBlur = 6;
+            ctx.shadowColor = "#e6b567";
+            ctx.stroke();
+        }
+        requestAnimationFrame(() => drawRibbons());
+    }
+    window.addEventListener('resize', () => { resizeCanvas(); });
+    // 监听hero区域变化
+    const observer = new ResizeObserver(() => resizeCanvas());
+    const heroDiv = document.querySelector('.hero');
+    if(heroDiv) observer.observe(heroDiv);
+    setTimeout(() => resizeCanvas(), 100);
+
+    // 敦煌主题数据 (精美)
+    const themeData = {
+        "飞天": {
+            title: "🎐 飞天 · 乐舞窟",
+            desc: "飞天飘带技法凝练为网页悬浮交互动效，线条轻盈。敦煌壁画中，飞天不依靠翅膀，仅凭飘带动势御风而行，是流动的符号。",
+            extra: "“天衣飞扬，满壁风动” —— 第320窟双飞天，盛唐巅峰。",
+            imgStyle: "url('https://picsum.photos/id/29/500/320')"
+        },
+        "九色鹿": {
+            title: "🦌 九色鹿 · 本生窟",
+            desc: "长按卡片触发本生信义箴言，将壁画叙事转为交互反射。九色鹿故事体现诚信与慈悲，北魏壁画色彩至今震撼。",
+            extra: "莫高窟第257窟西壁，《鹿王本生》连环画式构图。",
+            imgStyle: "url('https://picsum.photos/id/97/500/320')"
+        },
+        "藻井": {
+            title: "🪷 藻井 · 华盖窟",
+            desc: "藻井对称构造启发网页秩序与网格，层层套叠象征穹宇。隋唐缠枝莲纹、葡萄纹，汇聚丝路风格。",
+            extra: "藻井图案中心方井，垂幔铺陈，万花如海。",
+            imgStyle: "url('https://picsum.photos/id/127/500/320')"
+        },
+        "反弹琵琶": {
+            title: "🎵 反弹琵琶 · 伎乐窟",
+            desc: "乐舞交融，标志性造型。点击此处触发古乐模拟，营造敦煌听觉美学。",
+            extra: "第112窟《观无量寿经变》中舞伎反弹琵琶，惊世绝伦。",
+            imgStyle: "url('https://picsum.photos/id/22/500/320')"
+        }
+    };
+    
+    const modal = document.getElementById('detailModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalDesc = document.getElementById('modalDesc');
+    const modalExtraDiv = document.getElementById('modalExtra');
+    const modalImgDiv = document.getElementById('modalImg');
+    const closeModalBtn = document.getElementById('closeModalBtn');
+    let currentTheme = "飞天";
+
+    function openTheme(themeKey) {
+        const data = themeData[themeKey];
+        if(!data) return;
+        currentTheme = themeKey;
+        modalTitle.innerHTML = data.title;
+        modalDesc.innerHTML = data.desc;
+        modalExtraDiv.innerHTML = `<div class="audio-icon" id="playAudioBtn">🎵 天乐遗音 · 鸣沙回响</div><p style="margin-top: 12px; font-size:0.85rem;">📜 ${data.extra}</p>`;
+        modalImgDiv.style.backgroundImage = data.imgStyle;
+        modalImgDiv.style.backgroundSize = "cover";
+        modal.classList.add('modal-active');
+        const newAudioBtn = document.getElementById('playAudioBtn');
+        if(newAudioBtn) newAudioBtn.onclick = (e) => { e.stopPropagation(); playDunhuangTone(); };
+    }
+    function closeModal() { modal.classList.remove('modal-active'); }
+    closeModalBtn.onclick = closeModal;
+    modal.onclick = (e) => { if(e.target === modal) closeModal(); };
+
+    // 优雅敦煌音效
+    let audioContext = null;
+    function playDunhuangTone() {
+        try {
+            if(!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const now = audioContext.currentTime;
+            const osc = audioContext.createOscillator();
+            const gain = audioContext.createGain();
+            osc.connect(gain);
+            gain.connect(audioContext.destination);
+            osc.type = "sine";
+            osc.frequency.value = 415.3;  // 近似敦煌琵琶音
+            gain.gain.value = 0.25;
+            osc.start();
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + 1.2);
+            osc.stop(now + 1.3);
+            // 第二个装饰音
+            const osc2 = audioContext.createOscillator();
+            const gain2 = audioContext.createGain();
+            osc2.connect(gain2);
+            gain2.connect(audioContext.destination);
+            osc2.frequency.value = 523.25;
+            gain2.gain.value = 0.18;
+            osc2.start(now + 0.25);
+            gain2.gain.exponentialRampToValueAtTime(0.0001, now + 0.9);
+            osc2.stop(now + 0.9);
+        } catch(e) { console.log("音频未激活"); }
+    }
+
+    // 卡片点击 & 长按九色鹿
+    const cards = document.querySelectorAll('.cave-card');
+    cards.forEach(card => {
+        const theme = card.getAttribute('data-theme');
+        card.addEventListener('click', () => openTheme(theme));
+        if(theme === '九色鹿') {
+            let timer;
+            card.addEventListener('mousedown', () => { timer = setTimeout(() => alert('✨ “慈悲为怀，信义如山” — 鹿王本生启示录 ✨'), 450); });
+            card.addEventListener('mouseup', () => clearTimeout(timer));
+            card.addEventListener('mouseleave', () => clearTimeout(timer));
+            card.addEventListener('touchstart', (e) => { timer = setTimeout(() => alert('✨ “慈悲为怀，信义如山” — 鹿王本生启示录 ✨'), 450); });
+            card.addEventListener('touchend', () => clearTimeout(timer));
+        }
+    });
+
+    // 入窟平滑滚动 & 特殊提示
+    const enterBtn = document.getElementById('enterBtn');
+    enterBtn.addEventListener('click', () => {
+        const section = document.getElementById('cavesSection');
+        section.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        const tip = document.createElement('div');
+        tip.innerText = '🪷 点击任意窟龛，开启敦煌美学数字交互 🪷';
+        tip.style.position = 'fixed';
+        tip.style.bottom = '20px';
+        tip.style.left = '20px';
+        tip.style.background = '#1f130aa0';
+        tip.style.backdropFilter = 'blur(10px)';
+        tip.style.padding = '8px 18px';
+        tip.style.borderRadius = '40px';
+        tip.style.fontSize = '0.8rem';
+        tip.style.zIndex = '999';
+        tip.style.borderLeft = '3px solid #e6b567';
+        document.body.appendChild(tip);
+        setTimeout(() => tip.remove(), 3800);
+    });
+
+    // 文旅地图 tip
+    const spots = document.querySelectorAll('.spot');
+    const travelMsg = document.getElementById('travelMsg');
+    spots.forEach(spot => {
+        spot.addEventListener('click', () => {
+            const name = spot.getAttribute('data-spot');
+            let msg = '';
+            if(name === '莫高窟') msg = '🏯 数字敦煌 · 沉浸式游览莫高窟，感受壁画超清复原与VR飞天。';
+            else if(name === '鸣沙山') msg = '🐫 月牙泉畔，聆听沙鸣，骆驼骑行日落星河。';
+            else if(name === '雅丹') msg = '🌋 雅丹国家地质公园“西海舰队”，风蚀奇观，大地史诗。';
+            else msg = '🎭 行走式观演《又见敦煌》，瞬间穿越千年丝路。';
+            travelMsg.innerHTML = `📍 ${name} · ${msg}`;
+        });
+    });
+    // 初始绘制飘带动画持续
+    resizeCanvas();
+</script>
+</body>
+</html>
